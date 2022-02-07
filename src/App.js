@@ -3,6 +3,7 @@ import "./App.css";
 import generator from "sudoku";
 import { useState, useEffect } from "react";
 import Board from "./board";
+import produce from "immer";
 function App() {
   const [sudoku, setSudoku] = useState([]);
   const row = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -10,14 +11,15 @@ function App() {
     let mount = true;
     if (mount) {
       let sudoku = generatorSudoku();
-      setSudoku(sudoku);
+      setSudoku(produce(() => sudoku));
     }
     return () => {
       mount = false;
     };
   }, []);
+
   const generatorSudoku = () => {
-    const raw = generator.makepuzzle();
+    const raw = generator.makepuzzle().map((e) => (e !== null ? e + 1 : null));
     const result = {
       rows: [],
     };
@@ -38,6 +40,13 @@ function App() {
     }
     return result;
   };
+
+  const handleChange = (e) => {
+    setSudoku(
+      produce((state) => (state.rows[e.row].cols[e.col].value = e.value))
+    );
+  };
+
   return (
     <div className="App tw_relative tw_h-screen">
       <div className="inner-sudoku tw_block">
@@ -70,11 +79,11 @@ function App() {
             </button>
             <div className="time">
               <h4>Time Remaining</h4>
-              <time>05:00:00</time>
+              <time>00:00:00</time>
             </div>
           </div>
           <div className="card-game tw_mt-5">
-            <Board sudoku={sudoku} />
+            <Board sudoku={sudoku} onChange={handleChange} />
           </div>
           <div className="card-btn">
             {row.map((item) => (
