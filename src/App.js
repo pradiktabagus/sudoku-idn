@@ -1,7 +1,43 @@
 import logo from "./logo.svg";
 import "./App.css";
-
+import generator from "sudoku";
+import { useState, useEffect } from "react";
+import Board from "./board";
 function App() {
+  const [sudoku, setSudoku] = useState([]);
+  const row = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  useEffect(() => {
+    let mount = true;
+    if (mount) {
+      let sudoku = generatorSudoku();
+      setSudoku(sudoku);
+    }
+    return () => {
+      mount = false;
+    };
+  }, []);
+  const generatorSudoku = () => {
+    const raw = generator.makepuzzle();
+    const result = {
+      rows: [],
+    };
+
+    for (let i = 0; i < 9; i++) {
+      const row = { cols: [], index: i };
+      for (let j = 0; j < 9; j++) {
+        const value = raw[i * 9 + j];
+        const col = {
+          row: i,
+          col: j,
+          value: value,
+          readOnly: value !== null,
+        };
+        row.cols.push(col);
+      }
+      result.rows.push(row);
+    }
+    return result;
+  };
   return (
     <div className="App tw_relative tw_h-screen">
       <div className="inner-sudoku tw_block">
@@ -37,7 +73,14 @@ function App() {
               <time>05:00:00</time>
             </div>
           </div>
-          <div className="card-game tw_mt-5"></div>
+          <div className="card-game tw_mt-5">
+            <Board sudoku={sudoku} />
+          </div>
+          <div className="card-btn">
+            {row.map((item) => (
+              <button>{item}</button>
+            ))}
+          </div>
         </div>
       </div>
       <div className="footer tw_absolute tw_bottom-0 tw_w-full lg:tw_hidden">

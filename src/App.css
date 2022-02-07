@@ -7,6 +7,7 @@
   --color-1: #2EB086;
   --color-2: #313552;
   --color-3: #F76E11;
+  --color-4: #5d617a;
 }
 .footer {
   min-height: var(--height-footer);
@@ -37,6 +38,9 @@
   width: 100%;
   padding: 15px;
   min-height: 200px;
+  display:flex;
+  flex-direction: column;
+  align-items: center;
 }
 .btn-new {
   cursor: pointer;
@@ -63,14 +67,47 @@
 .time time {
   font-size: 12pt;
 }
+.header-game {
+  width: 450px;
+}
 .card-game {
-  height: 200px;
-  border: 1px solid var(--color-3);
+  height: 450px;
+  width: 450px;
+  display: flex;
+  border: 2px solid var(--color-3);
+  overflow: hidden;
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
   -ms-border-radius: 4px;
   -o-border-radius: 4px;
   border-radius: 4px;
+}
+.card-btn {
+  width: 450px;
+  height: 50px;
+  display: flex;
+}
+.card-btn button {
+  width: 50px;
+  height: 50px;
+}
+.row {
+  width: 150px;
+  height: 150px;
+  float: left;
+}
+.field {
+  width: 50px;
+  height: 50px;
+  float: left;
+  text-align: center;
+  color: #fff;
+}
+.field.genap {
+  background-color: var(--color-2);
+}
+.field.ganjil {
+  background-color: var(--color-4);
 }
 @media screen and (min-width: 1024px){
   .inner-sudoku {
@@ -79,5 +116,6 @@
   .main-game {
     left: 50%;
     max-width: 500px;
+    width: 450px;
   }
 }
