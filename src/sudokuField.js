@@ -2,12 +2,15 @@ import React from "react";
 import PropTypes from "prop-types";
 
 function SudokuField(props) {
-  const { field, onChange } = props;
+  const { field, onCallback } = props;
   const bgColor = (field.col + field.row) % 2 === 0 ? "genap" : "ganjil";
 
   const handleChange = (e) => {
-    const value = value === "" ? "" : parseInt(e.target.value, 10);
-    onChange({ ...field, value: value });
+    const { value } = e.target;
+    if (parseInt(value) > 9) {
+      return;
+    }
+    onCallback(field.row, field.col, field.readOnly, parseInt(value));
   };
   return (
     <input
@@ -15,10 +18,14 @@ function SudokuField(props) {
       value={field.value || ""}
       readOnly={field.readOnly}
       onChange={handleChange}
+      onClick={() => onCallback(field.row, field.col, field.readOnly)}
     />
   );
 }
 
-SudokuField.propTypes = {};
+SudokuField.propTypes = {
+  field: PropTypes.object,
+  onCallback: PropTypes.func,
+};
 
 export default SudokuField;

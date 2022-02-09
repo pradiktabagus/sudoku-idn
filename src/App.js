@@ -1,17 +1,30 @@
-import logo from "./logo.svg";
 import "./App.css";
+import PropTypes from "prop-types";
 import generator from "sudoku";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import Board from "./board";
-import produce from "immer";
-function App() {
-  const [sudoku, setSudoku] = useState([]);
-  const row = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+import {
+  SetGrid,
+  SetClickValue,
+  SetMove,
+  SetIsWon,
+  NewGame,
+} from "./state/action";
+import { connect } from "react-redux";
+import { arrayCopy, solveGrid } from "./helper";
+import useStopwatch from "./component/stopwatch";
+import Number from "./number";
+import Sidebar from "./sidebar";
+
+function App(props) {
+  const { setGrid, setWon, grid, newGame } = props;
+  const { Time } = useStopwatch();
+
   useEffect(() => {
     let mount = true;
     if (mount) {
       let sudoku = generatorSudoku();
-      setSudoku(produce(() => sudoku));
+      setGrid(sudoku);
     }
     return () => {
       mount = false;
@@ -20,12 +33,10 @@ function App() {
 
   const generatorSudoku = () => {
     const raw = generator.makepuzzle().map((e) => (e !== null ? e + 1 : null));
-    const result = {
-      rows: [],
-    };
+    const results = [];
 
     for (let i = 0; i < 9; i++) {
-      const row = { cols: [], index: i };
+      const row = [];
       for (let j = 0; j < 9; j++) {
         const value = raw[i * 9 + j];
         const col = {
@@ -33,20 +44,32 @@ function App() {
           col: j,
           value: value,
           readOnly: value !== null,
+          isValid: true,
         };
-        row.cols.push(col);
+        row.push(col);
       }
-      result.rows.push(row);
+      results.push(row);
     }
-    return result;
+    return results;
   };
 
-  const handleChange = (e) => {
-    setSudoku(
-      produce((state) => (state.rows[e.row].cols[e.col].value = e.value))
-    );
+  const handleNewGame = (e) => {
+    e.preventDefault();
+    let sudoku = generatorSudoku();
+    newGame(sudoku);
   };
 
+  const handleSolve = (e) => {
+    e.preventDefault();
+    let newBoard = arrayCopy(grid);
+    let isSolved = solveGrid(newBoard);
+
+    if (!isSolved) {
+      return;
+    }
+    setWon(true);
+    setGrid(newBoard);
+  };
   return (
     <div className="App tw_relative tw_h-screen">
       <div className="inner-sudoku tw_block">
@@ -55,48 +78,48 @@ function App() {
             SUDOKU
           </div>
         </div>
-        <div className="tw_w-6/12 tw_p-10 tw_px-24 tw_relative">
-          <div className="inner-sidebar tw_hidden lg:tw_block">
-            <div className="tw_text-5xl tw_font-bold tw_mt-16">
-              Play <br /> Sudoku!
-            </div>
-            <div className="tw_mt-9 tw_text-base tw_max-w-xs">
-              You can complete this sudoku with your abilities or click the
-              button bellow to finish it automatically
-            </div>
-            <button
-              className="btn-solve tw_w-96 tw_h-11 tw_rounded tw_mt-3"
-              type="button"
-            >
-              Solve Me!
-            </button>
-          </div>
-        </div>
+        <Sidebar handleSolve={handleSolve} />
         <div className="main-game">
           <div className="header-game tw_flex tw_justify-between tw_items-start">
-            <button type="button" className="btn-new">
+            <button type="button" className="btn-new" onClick={handleNewGame}>
               + New Game
             </button>
             <div className="time">
               <h4>Time Remaining</h4>
-              <time>00:00:00</time>
+              <time>{Time}</time>
             </div>
           </div>
-          <div className="card-game tw_mt-5">
-            <Board sudoku={sudoku} onChange={handleChange} />
-          </div>
-          <div className="card-btn">
-            {row.map((item) => (
-              <button>{item}</button>
-            ))}
-          </div>
+          <Board />
+          <Number />
         </div>
       </div>
       <div className="footer tw_absolute tw_bottom-0 tw_w-full lg:tw_hidden">
-        <button>Solve Me</button>
+        <button onClick={handleSolve}>Solve Me</button>
       </div>
     </div>
   );
 }
 
-export default App;
+Board.propTypes = {
+  grid: PropTypes.array,
+  clickValue: PropTypes.number,
+  setGrid: PropTypes.func,
+  setClickValue: PropTypes.func,
+  setMove: PropTypes.func,
+  setWon: PropTypes.func,
+  newGame: PropTypes.func,
+};
+
+const mapStateToProps = ({ sudoku }) => ({
+  grid: sudoku.grid,
+  clickValue: sudoku.clickValue,
+});
+const mapDispatchToProps = (dispatch) => ({
+  setGrid: (data) => dispatch(SetGrid(data)),
+  setClickValue: (value) => dispatch(SetClickValue(value)),
+  setMove: (value) => dispatch(SetMove(value)),
+  setWon: (value) => dispatch(SetIsWon(value)),
+  newGame: (data) => dispatch(NewGame(data)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);
